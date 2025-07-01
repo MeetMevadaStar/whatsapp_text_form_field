@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wp_text_field/whatsapp_text_field.dart';
+import 'package:whatsapp_field/src/whatsapp_text_field.dart';
 
 void main() => runApp(const MyApp());
 
@@ -9,7 +9,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(body: ChatExample()),
+      home: Scaffold(
+        body: ChatExample(),
+      ),
     );
   }
 }
@@ -29,12 +31,12 @@ class _ChatExampleState extends State<ChatExample> {
       children: [
         Expanded(
           child: ListView(
-            children: _messages
-                .map((msg) => ListTile(title: Text(msg)))
-                .toList(),
+            children: _messages.map((msg) => ListTile(title: Text(msg))).toList(),
           ),
         ),
-        WhatsAppTextField(controller: _controller),
+        WhatsAppTextField(
+          controller: _controller,
+        ),
       ],
     );
   }

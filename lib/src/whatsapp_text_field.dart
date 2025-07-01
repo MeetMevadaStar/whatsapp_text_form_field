@@ -65,16 +65,30 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
     super.dispose();
   }
 
+  // @override
+  // void didChangeMetrics() {
+  //   final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom / WidgetsBinding.instance.window.devicePixelRatio;
+  //   print('_keyboardHeight=>>${_keyboardHeight}');
+  //   if (bottomInset > 0) {
+  //     _keyboardHeight = bottomInset;
+  //     setState(() {
+  //       if (_showEmojiPicker) _showEmojiPicker = false;
+  //     });
+  //   }
+  // }
   @override
   void didChangeMetrics() {
     final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom / WidgetsBinding.instance.window.devicePixelRatio;
-    print('_keyboardHeight=>>${_keyboardHeight}');
-    if (bottomInset > 0) {
-      _keyboardHeight = bottomInset;
+
+    // Only update if height is > 0 and greater than previous
+    if (bottomInset > 0 && bottomInset > (_keyboardHeight ?? 0)) {
       setState(() {
+        _keyboardHeight = bottomInset;
         if (_showEmojiPicker) _showEmojiPicker = false;
       });
     }
+
+    print('_keyboardHeight =>> $_keyboardHeight');
   }
 
   void _toggleEmojiKeyboard() async {
@@ -83,7 +97,7 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
       if (mounted) {
         FocusScope.of(context).requestFocus(_focusNode);
       }
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 50));
       setState(() => _showEmojiPicker = false);
 
       // Delay slightly before opening the keyboard
@@ -92,7 +106,7 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
       FocusScope.of(context).unfocus();
 
       // Wait until keyboard is fully hidden
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 50));
 
       // Then show emoji picker
       if (mounted) {
@@ -114,94 +128,101 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_showAboveSheet) const SizedBox(height: 260),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: widget.controller,
-                      focusNode: _focusNode,
-                      maxLines: widget.maxLines,
-                      autofocus: widget.autoFocus,
-                      keyboardType: widget.keyboardType ?? TextInputType.multiline,
-                      textInputAction: widget.textInputAction,
-                      onChanged: widget.onChanged,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[200],
-                        hintText: widget.hintText,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(widget.textFieldRadius),
-                          borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: IconButton(
-                          icon: Icon(
-                            _showEmojiPicker ? Icons.keyboard_alt_outlined : widget.emojiIcon,
-                            color: Colors.grey,
+    return Container(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_showAboveSheet) const SizedBox(height: 260),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        onTap: () {
+                          if (_showEmojiPicker == true) {
+                            FocusScope.of(context).unfocus();
+                          }
+                        },
+                        controller: widget.controller,
+                        focusNode: _focusNode,
+                        maxLines: widget.maxLines,
+                        autofocus: widget.autoFocus,
+                        keyboardType: widget.keyboardType ?? TextInputType.multiline,
+                        textInputAction: widget.textInputAction,
+                        onChanged: widget.onChanged,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          hintText: widget.hintText,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(widget.textFieldRadius),
+                            borderSide: BorderSide.none,
                           ),
-                          onPressed: _toggleEmojiKeyboard,
+                          prefixIcon: IconButton(
+                            icon: Icon(
+                              _showEmojiPicker ? Icons.keyboard_alt_outlined : widget.emojiIcon,
+                              color: Colors.grey,
+                            ),
+                            onPressed: _toggleEmojiKeyboard,
+                          ),
+                          suffixIcon: widget.showAttachmentIcon &&
+                                  ((widget.attachmentConfig?.showCamera ?? true) ||
+                                      (widget.attachmentConfig?.showGallery ?? true) ||
+                                      (widget.attachmentConfig?.showAudio ?? true))
+                              ? IconButton(
+                                  icon: Icon(widget.attachmentIcon, color: Colors.grey),
+                                  onPressed: _toggleAboveSheet,
+                                )
+                              : null,
                         ),
-                        suffixIcon: widget.showAttachmentIcon &&
-                                ((widget.attachmentConfig?.showCamera ?? true) ||
-                                    (widget.attachmentConfig?.showGallery ?? true) ||
-                                    (widget.attachmentConfig?.showAudio ?? true))
-                            ? IconButton(
-                                icon: Icon(widget.attachmentIcon, color: Colors.grey),
-                                onPressed: _toggleAboveSheet,
-                              )
-                            : null,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: widget.sendButtonRadius * 2,
-                    height: widget.sendButtonRadius * 2,
-                    decoration: BoxDecoration(
-                      color: widget.sendButtonColor,
-                      shape: BoxShape.circle,
+                    const SizedBox(width: 8),
+                    Container(
+                      width: widget.sendButtonRadius * 2,
+                      height: widget.sendButtonRadius * 2,
+                      decoration: BoxDecoration(
+                        color: widget.sendButtonColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: Icon(widget.sendIcon, color: Colors.white),
+                        onPressed: widget.onSendTap,
+                      ),
                     ),
-                    child: IconButton(
-                      icon: Icon(widget.sendIcon, color: Colors.white),
-                      onPressed: widget.onSendTap,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            if (_showEmojiPicker) SizedBox(height: _keyboardHeight ?? 0),
-          ],
-        ),
-        if (_showAboveSheet)
-          AttachmentSheet(
-            context: context,
-            onCameraTap: widget.attachmentConfig?.onCameraFilesPicked,
-            onGalleryTap: widget.attachmentConfig?.onGalleryFilesPicked,
-            onAudioTap: widget.attachmentConfig?.onAudioFilesPicked,
-            onDocSelect: widget.attachmentConfig?.onDocFilerPicked,
-            onContactSelect: widget.attachmentConfig?.onContactPicked,
-            showCamera: widget.attachmentConfig?.showCamera ?? true,
-            showGallery: widget.attachmentConfig?.showGallery ?? true,
-            showAudio: widget.attachmentConfig?.showAudio ?? true,
-            showDoc: widget.attachmentConfig?.showDoc ?? true,
-            showContact: widget.attachmentConfig?.showContact ?? true,
-            backgroundColor: widget.attachmentConfig?.backgroundColor ?? Colors.white,
-            iconColor: widget.attachmentConfig?.iconColor ?? Colors.black,
-            textColor: widget.attachmentConfig?.textColor ?? Colors.black,
-            iconBackgroundColor: widget.attachmentConfig?.iconBackgroundColor ?? Color(0xFFE0E0E0),
+              if (_showEmojiPicker) SizedBox(height: _keyboardHeight ?? 0),
+            ],
           ),
-        if (_showEmojiPicker) EmojiPickerOverlay(controller: widget.controller, keyboardHeight: _keyboardHeight ?? 0)
-      ],
+          if (_showAboveSheet)
+            AttachmentSheet(
+              context: context,
+              onCameraTap: widget.attachmentConfig?.onCameraFilesPicked,
+              onGalleryTap: widget.attachmentConfig?.onGalleryFilesPicked,
+              onAudioTap: widget.attachmentConfig?.onAudioFilesPicked,
+              onDocSelect: widget.attachmentConfig?.onDocFilerPicked,
+              onContactSelect: widget.attachmentConfig?.onContactPicked,
+              showCamera: widget.attachmentConfig?.showCamera ?? true,
+              showGallery: widget.attachmentConfig?.showGallery ?? true,
+              showAudio: widget.attachmentConfig?.showAudio ?? true,
+              showDoc: widget.attachmentConfig?.showDoc ?? true,
+              showContact: widget.attachmentConfig?.showContact ?? true,
+              backgroundColor: widget.attachmentConfig?.backgroundColor ?? Colors.white,
+              iconColor: widget.attachmentConfig?.iconColor ?? Colors.black,
+              textColor: widget.attachmentConfig?.textColor ?? Colors.black,
+              iconBackgroundColor: widget.attachmentConfig?.iconBackgroundColor ?? Color(0xFFE0E0E0),
+            ),
+          if (_showEmojiPicker) EmojiPickerOverlay(controller: widget.controller, keyboardHeight: _keyboardHeight ?? 0)
+        ],
+      ),
     );
   }
 }

@@ -1,6 +1,6 @@
 {
-    "name": "wp_text_field",
-    "short_name": "wp_text_field",
+    "name": "whatsapp_field",
+    "short_name": "whatsapp_field",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
