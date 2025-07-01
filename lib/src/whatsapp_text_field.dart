@@ -12,6 +12,7 @@ class WhatsAppTextField extends StatefulWidget {
   final double sendButtonRadius;
   final IconData emojiIcon;
   final IconData attachmentIcon;
+  final bool showEmogyIcon;
   final bool showAttachmentIcon;
   final VoidCallback? onSendTap;
   final ValueChanged<String>? onChanged;
@@ -20,26 +21,41 @@ class WhatsAppTextField extends StatefulWidget {
   final bool autoFocus;
   final int maxLines;
   final AttachmentConfig? attachmentConfig;
+  final bool readOnly;
+  final bool enabled;
+  final bool enableSuggestions;
+  final bool autocorrect;
+  final TextCapitalization textCapitalization;
+  final Widget? customEmojiIcon;
+  final VoidCallback? onCustomEmojiTap;
 
-  const WhatsAppTextField(
-      {Key? key,
-      required this.controller,
-      this.hintText = "Type a message",
-      this.sendIcon = Icons.send,
-      this.sendButtonColor = Colors.green,
-      this.textFieldRadius = 25.0,
-      this.sendButtonRadius = 25.0,
-      this.emojiIcon = Icons.emoji_emotions_outlined,
-      this.attachmentIcon = Icons.attach_file,
-      this.showAttachmentIcon = true,
-      this.onSendTap,
-      this.onChanged,
-      this.textInputAction = TextInputAction.send,
-      this.keyboardType = TextInputType.multiline,
-      this.autoFocus = false,
-      this.maxLines = 1,
-      this.attachmentConfig})
-      : super(key: key);
+  WhatsAppTextField({
+    Key? key,
+    required this.controller,
+    this.hintText = "Type a message",
+    this.sendIcon = Icons.send,
+    this.sendButtonColor = Colors.green,
+    this.textFieldRadius = 25.0,
+    this.sendButtonRadius = 25.0,
+    this.emojiIcon = Icons.emoji_emotions_outlined,
+    this.attachmentIcon = Icons.attach_file,
+    this.showEmogyIcon = true,
+    this.showAttachmentIcon = true,
+    this.onSendTap,
+    this.onChanged,
+    this.textInputAction = TextInputAction.send,
+    this.keyboardType = TextInputType.multiline,
+    this.autoFocus = false,
+    this.maxLines = 1,
+    this.attachmentConfig,
+    this.readOnly = false,
+    this.enabled = true,
+    this.enableSuggestions = false,
+    this.autocorrect = false,
+    this.textCapitalization = TextCapitalization.sentences,
+    this.customEmojiIcon,
+    this.onCustomEmojiTap,
+  }) : super(key: key);
 
   @override
   State<WhatsAppTextField> createState() => _WhatsAppTextFieldState();
@@ -48,6 +64,7 @@ class WhatsAppTextField extends StatefulWidget {
 class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindingObserver {
   bool _showAboveSheet = false;
   bool _showEmojiPicker = false;
+  bool isFocused = false;
   final FocusNode _focusNode = FocusNode();
   double? _keyboardHeight = 259.0;
 
@@ -65,22 +82,10 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
     super.dispose();
   }
 
-  // @override
-  // void didChangeMetrics() {
-  //   final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom / WidgetsBinding.instance.window.devicePixelRatio;
-  //   print('_keyboardHeight=>>${_keyboardHeight}');
-  //   if (bottomInset > 0) {
-  //     _keyboardHeight = bottomInset;
-  //     setState(() {
-  //       if (_showEmojiPicker) _showEmojiPicker = false;
-  //     });
-  //   }
-  // }
   @override
   void didChangeMetrics() {
     final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom / WidgetsBinding.instance.window.devicePixelRatio;
 
-    // Only update if height is > 0 and greater than previous
     if (bottomInset > 0 && bottomInset > (_keyboardHeight ?? 0)) {
       setState(() {
         _keyboardHeight = bottomInset;
@@ -88,33 +93,29 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
       });
     }
 
+    if (isFocused && _showEmojiPicker == true) {
+      setState(() {
+        _showEmojiPicker = false;
+      });
+    }
     print('_keyboardHeight =>> $_keyboardHeight');
   }
 
   void _toggleEmojiKeyboard() async {
     if (_showEmojiPicker) {
-      // Hide emoji picker first
       if (mounted) {
         FocusScope.of(context).requestFocus(_focusNode);
       }
       await Future.delayed(const Duration(milliseconds: 50));
       setState(() => _showEmojiPicker = false);
-
-      // Delay slightly before opening the keyboard
     } else {
-      // Hide keyboard first
       FocusScope.of(context).unfocus();
-
-      // Wait until keyboard is fully hidden
       await Future.delayed(const Duration(milliseconds: 50));
-
-      // Then show emoji picker
       if (mounted) {
         setState(() => _showEmojiPicker = true);
       }
     }
 
-    // Always hide the attachment sheet
     setState(() => _showAboveSheet = false);
   }
 
@@ -142,44 +143,58 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
-                      child: TextFormField(
-                        onTap: () {
-                          if (_showEmojiPicker == true) {
-                            FocusScope.of(context).unfocus();
-                          }
+                      child: Focus(
+                        onFocusChange: (value) {
+                          setState(() {
+                            isFocused = value;
+                          });
                         },
-                        controller: widget.controller,
-                        focusNode: _focusNode,
-                        maxLines: widget.maxLines,
-                        autofocus: widget.autoFocus,
-                        keyboardType: widget.keyboardType ?? TextInputType.multiline,
-                        textInputAction: widget.textInputAction,
-                        onChanged: widget.onChanged,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.grey[200],
-                          hintText: widget.hintText,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(widget.textFieldRadius),
-                            borderSide: BorderSide.none,
-                          ),
-                          prefixIcon: IconButton(
-                            icon: Icon(
-                              _showEmojiPicker ? Icons.keyboard_alt_outlined : widget.emojiIcon,
-                              color: Colors.grey,
+                        child: TextFormField(
+                          controller: widget.controller,
+                          focusNode: _focusNode,
+                          maxLines: widget.maxLines,
+                          autofocus: widget.autoFocus,
+                          keyboardType: widget.keyboardType,
+                          textInputAction: widget.textInputAction,
+                          onChanged: widget.onChanged,
+                          readOnly: widget.readOnly,
+                          enabled: widget.enabled,
+                          enableSuggestions: widget.enableSuggestions,
+                          autocorrect: widget.autocorrect,
+                          textCapitalization: widget.textCapitalization,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            hintText: widget.hintText,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(widget.textFieldRadius),
+                              borderSide: BorderSide.none,
                             ),
-                            onPressed: _toggleEmojiKeyboard,
+                            prefixIcon: widget.showEmogyIcon
+                                ? IconButton(
+                                    icon: Icon(
+                                      _showEmojiPicker ? Icons.keyboard_alt_outlined : widget.emojiIcon,
+                                      color: Colors.grey,
+                                    ),
+                                    onPressed: _toggleEmojiKeyboard,
+                                  )
+                                : (widget.customEmojiIcon != null
+                                    ? IconButton(
+                                        icon: widget.customEmojiIcon!,
+                                        onPressed: widget.onCustomEmojiTap,
+                                      )
+                                    : null),
+                            suffixIcon: widget.showAttachmentIcon &&
+                                    ((widget.attachmentConfig?.showCamera ?? true) ||
+                                        (widget.attachmentConfig?.showGallery ?? true) ||
+                                        (widget.attachmentConfig?.showAudio ?? true))
+                                ? IconButton(
+                                    icon: Icon(widget.attachmentIcon, color: Colors.grey),
+                                    onPressed: _toggleAboveSheet,
+                                  )
+                                : null,
                           ),
-                          suffixIcon: widget.showAttachmentIcon &&
-                                  ((widget.attachmentConfig?.showCamera ?? true) ||
-                                      (widget.attachmentConfig?.showGallery ?? true) ||
-                                      (widget.attachmentConfig?.showAudio ?? true))
-                              ? IconButton(
-                                  icon: Icon(widget.attachmentIcon, color: Colors.grey),
-                                  onPressed: _toggleAboveSheet,
-                                )
-                              : null,
                         ),
                       ),
                     ),
@@ -218,9 +233,13 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
               backgroundColor: widget.attachmentConfig?.backgroundColor ?? Colors.white,
               iconColor: widget.attachmentConfig?.iconColor ?? Colors.black,
               textColor: widget.attachmentConfig?.textColor ?? Colors.black,
-              iconBackgroundColor: widget.attachmentConfig?.iconBackgroundColor ?? Color(0xFFE0E0E0),
+              iconBackgroundColor: widget.attachmentConfig?.iconBackgroundColor ?? const Color(0xFFE0E0E0),
             ),
-          if (_showEmojiPicker) EmojiPickerOverlay(controller: widget.controller, keyboardHeight: _keyboardHeight ?? 0)
+          if (_showEmojiPicker)
+            EmojiPickerOverlay(
+              controller: widget.controller,
+              keyboardHeight: _keyboardHeight ?? 0,
+            ),
         ],
       ),
     );

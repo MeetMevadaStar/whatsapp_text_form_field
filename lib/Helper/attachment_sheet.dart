@@ -105,8 +105,9 @@ class AttachmentSheet extends StatelessWidget {
             ),
             child: GridView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+              physics: NeverScrollableScrollPhysics(),
               itemCount: options.length,
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
                 mainAxisSpacing: 6, // Less spacing
