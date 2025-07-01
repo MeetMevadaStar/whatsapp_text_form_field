@@ -6,7 +6,7 @@ class AttachmentConfig {
   final Function(List<File>)? onGalleryFilesPicked;
   final Function(List<File>)? onAudioFilesPicked;
   final Function(List<File>)? onDocFilerPicked;
-  final Function(List<File>)? onContactPicked;
+  final void Function(Map<String, dynamic>)? onContactPicked;
 
   final Color backgroundColor;
   final Color iconColor;

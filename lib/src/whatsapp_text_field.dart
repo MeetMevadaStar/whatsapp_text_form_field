@@ -129,7 +129,16 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return PopScope(
+      canPop: _showEmojiPicker == false && _showAboveSheet == false,
+      onPopInvoked: (didPop) {
+        if (_showEmojiPicker || _showAboveSheet) {
+          setState(() {
+            _showEmojiPicker = false;
+            _showAboveSheet = false;
+          });
+        }
+      },
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -188,7 +197,9 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
                             suffixIcon: widget.showAttachmentIcon &&
                                     ((widget.attachmentConfig?.showCamera ?? true) ||
                                         (widget.attachmentConfig?.showGallery ?? true) ||
-                                        (widget.attachmentConfig?.showAudio ?? true))
+                                        (widget.attachmentConfig?.showAudio ?? true) ||
+                                        (widget.attachmentConfig?.showDoc ?? true) ||
+                                        (widget.attachmentConfig?.showContact ?? true))
                                 ? IconButton(
                                     icon: Icon(widget.attachmentIcon, color: Colors.grey),
                                     onPressed: _toggleAboveSheet,

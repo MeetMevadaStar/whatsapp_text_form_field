@@ -1,8 +1,12 @@
 import 'dart:io';
 
+import 'package:contacts_service/contacts_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:whatsapp_camera/camera/camera_whatsapp.dart';
+
+import 'contact_picker_dialgue.dart';
 
 class AttachmentSheet extends StatelessWidget {
   final BuildContext context;
@@ -10,7 +14,7 @@ class AttachmentSheet extends StatelessWidget {
   final Function(List<File>)? onGalleryTap;
   final Function(List<File>)? onAudioTap;
   final Function(List<File>)? onDocSelect;
-  final Function(List<File>)? onContactSelect;
+  final void Function(Map<String, dynamic>)? onContactSelect;
   final bool showCamera;
   final bool showGallery;
   final bool showAudio;
@@ -193,15 +197,23 @@ class AttachmentSheet extends StatelessWidget {
   }
 
   void onContactSelectEvent() async {
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      type: FileType.custom,
-      allowedExtensions: ['vcf'],
-    );
-    if (result != null && onContactSelect != null) {
-      final files = result.paths.map((e) => File(e!)).toList();
-      onContactSelect!(files);
+    final permissionStatus = await Permission.contacts.request();
+
+    if (!permissionStatus.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Contacts permission denied')),
+      );
+      return;
     }
+
+    Iterable<Contact> contacts = await ContactsService.getContacts(withThumbnails: false);
+    showDialog(
+      context: context,
+      builder: (_) => ContactPickerDialog(
+        contacts: contacts ?? [],
+        onContactSelect: onContactSelect,
+      ),
+    );
   }
 }
 

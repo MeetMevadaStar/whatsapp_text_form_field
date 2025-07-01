@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:whatsapp_field/model/attachment_model.dart';
 import 'package:whatsapp_field/src/whatsapp_text_field.dart';
 
 void main() => runApp(const MyApp());
