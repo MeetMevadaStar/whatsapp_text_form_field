@@ -98,7 +98,6 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
         _showEmojiPicker = false;
       });
     }
-    print('_keyboardHeight =>> $_keyboardHeight');
   }
 
   void _toggleEmojiKeyboard() async {
@@ -131,7 +130,7 @@ class _WhatsAppTextFieldState extends State<WhatsAppTextField> with WidgetsBindi
   Widget build(BuildContext context) {
     return PopScope(
       canPop: _showEmojiPicker == false && _showAboveSheet == false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (_showEmojiPicker || _showAboveSheet) {
           setState(() {
             _showEmojiPicker = false;

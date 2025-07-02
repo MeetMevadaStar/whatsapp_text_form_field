@@ -5,7 +5,11 @@ class EmojiPickerOverlay extends StatelessWidget {
   final TextEditingController controller;
   final double keyboardHeight;
 
-  const EmojiPickerOverlay({super.key, required this.controller, required this.keyboardHeight});
+  const EmojiPickerOverlay({
+    super.key,
+    required this.controller,
+    required this.keyboardHeight,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +27,9 @@ class EmojiPickerOverlay extends StatelessWidget {
         },
         onBackspacePressed: () {
           final text = controller.text;
-          final selection = controller.selection;
 
           if (text.isNotEmpty) {
-            final newText = text.characters.skipLast(1).toString(); // Handles emojis safely
+            final newText = text.characters.skipLast(1).toString(); // Safely handles emojis
             controller.text = newText;
             controller.selection = TextSelection.fromPosition(
               TextPosition(offset: newText.length),
@@ -34,13 +37,23 @@ class EmojiPickerOverlay extends StatelessWidget {
           }
         },
         config: Config(
-            height: keyboardHeight,
-            emojiTextStyle: const TextStyle(fontSize: 24),
-            emojiViewConfig: EmojiViewConfig(emojiSizeMax: 28, columns: 8),
-            categoryViewConfig: CategoryViewConfig(iconColorSelected: Colors.green),
-            bottomActionBarConfig: BottomActionBarConfig(showBackspaceButton: true),
-            checkPlatformCompatibility: true,
-            searchViewConfig: SearchViewConfig(backgroundColor: Colors.white)),
+          height: keyboardHeight,
+          emojiTextStyle: const TextStyle(fontSize: 24),
+          emojiViewConfig: const EmojiViewConfig(
+            emojiSizeMax: 28,
+            columns: 8,
+          ),
+          categoryViewConfig: const CategoryViewConfig(
+            iconColorSelected: Colors.green,
+          ),
+          bottomActionBarConfig: const BottomActionBarConfig(
+            showBackspaceButton: true,
+          ),
+          checkPlatformCompatibility: true,
+          searchViewConfig: const SearchViewConfig(
+            backgroundColor: Colors.white,
+          ),
+        ),
       ),
     );
   }

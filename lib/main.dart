@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:whatsapp_field/model/attachment_model.dart';
 import 'package:whatsapp_field/src/whatsapp_text_field.dart';
 
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: ChatExample(),
@@ -18,6 +18,8 @@ class MyApp extends StatelessWidget {
 }
 
 class ChatExample extends StatefulWidget {
+  const ChatExample({super.key}); // ✅ Added key parameter
+
   @override
   State<ChatExample> createState() => _ChatExampleState();
 }

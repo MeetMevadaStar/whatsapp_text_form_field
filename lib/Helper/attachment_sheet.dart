@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:contacts_service/contacts_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -89,75 +88,78 @@ class AttachmentSheet extends StatelessWidget {
     }
 
     return Positioned(
-        bottom: 70,
-        left: 8,
-        right: 8,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0), // Less padding
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(16), // Slightly smaller radius
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05), // Softer shadow
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: options.length,
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                mainAxisSpacing: 6, // Less spacing
-                crossAxisSpacing: 6,
-                childAspectRatio: 1.1, // More compact items
+      bottom: 70,
+      left: 8,
+      right: 8,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(0),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
-              itemBuilder: (context, index) {
-                final option = options[index];
-                return GestureDetector(
-                  onTap: option.onTap,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: iconBackgroundColor,
-                        ),
-                        padding: const EdgeInsets.all(10), // Smaller padding
-                        child: Icon(option.icon, size: 20, color: iconColor), // Slightly smaller icon
-                      ),
-                      const SizedBox(height: 4), // Reduced spacing
-                      Text(
-                        option.label,
-                        style: TextStyle(fontSize: 11, color: textColor), // Slightly smaller font
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+            ],
           ),
-        ));
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: options.length,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              mainAxisSpacing: 6,
+              crossAxisSpacing: 6,
+              childAspectRatio: 1.1,
+            ),
+            itemBuilder: (context, index) {
+              final option = options[index];
+              return GestureDetector(
+                onTap: option.onTap,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: iconBackgroundColor,
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: Icon(option.icon, size: 20, color: iconColor),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      option.label,
+                      style: TextStyle(fontSize: 11, color: textColor),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   void onCameraTapEvent() async {
-    List<File>? res = await Navigator.push(
+    final res = await Navigator.push<List<File>>(
       context,
       MaterialPageRoute(
-        builder: (context) => WhatsappCamera(multiple: true),
+        builder: (context) => const WhatsappCamera(multiple: true),
       ),
     );
-    if (res != null && onCameraTap != null) onCameraTap!(res);
+    if (res != null) {
+      onCameraTap?.call(res);
+    }
   }
 
   void onGalleryTapEvent() async {
@@ -166,9 +168,9 @@ class AttachmentSheet extends StatelessWidget {
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'mp4', 'mov', 'avi', 'mkv'],
     );
-    if (result != null && onGalleryTap != null) {
+    if (result != null) {
       final files = result.paths.map((e) => File(e!)).toList();
-      onGalleryTap!(files);
+      onGalleryTap?.call(files);
     }
   }
 
@@ -178,9 +180,9 @@ class AttachmentSheet extends StatelessWidget {
       type: FileType.custom,
       allowedExtensions: ['mp3', 'wav', 'aac', 'm4a', 'flac'],
     );
-    if (result != null && onAudioTap != null) {
+    if (result != null) {
       final files = result.paths.map((e) => File(e!)).toList();
-      onAudioTap!(files);
+      onAudioTap?.call(files);
     }
   }
 
@@ -190,9 +192,9 @@ class AttachmentSheet extends StatelessWidget {
       type: FileType.custom,
       allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt'],
     );
-    if (result != null && onDocSelect != null) {
+    if (result != null) {
       final files = result.paths.map((e) => File(e!)).toList();
-      onDocSelect!(files);
+      onDocSelect?.call(files);
     }
   }
 
@@ -201,16 +203,16 @@ class AttachmentSheet extends StatelessWidget {
 
     if (!permissionStatus.isGranted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Contacts permission denied')),
+        const SnackBar(content: Text('Contacts permission denied')),
       );
       return;
     }
 
-    Iterable<Contact> contacts = await ContactsService.getContacts(withThumbnails: false);
+    final contacts = await ContactsService.getContacts(withThumbnails: false);
     showDialog(
       context: context,
       builder: (_) => ContactPickerDialog(
-        contacts: contacts ?? [],
+        contacts: contacts,
         onContactSelect: onContactSelect,
       ),
     );
